@@ -82,6 +82,7 @@ adminRouter.post("/course",adminMiddleware, async (req: Request, res: Response) 
 
         const { title, description, price, imageUrl } = body.data;
         const course = await Courses.create({ title, description, price, imageUrl, creatorId: adminId });
+        redisClient.del(`courses:${adminId}`);
 
         res.json({ message: "Course created successfully", courseId: course._id });
     } catch (error) {
@@ -112,6 +113,9 @@ adminRouter.put("/course", adminMiddleware, async (req: Request, res: Response) 
         if (!course) {
             return res.status(404).json({ message: "Course not found or unauthorized" });
         }
+
+        redisClient.del(`courses:${adminId}`);
+
 
         res.json({ message: "Course updated", courseId: course._id });
     } catch (error) {
@@ -148,6 +152,8 @@ adminRouter.delete('/course/:id', adminMiddleware, async (req: Request, res: Res
         if (!course) {
             return res.status(404).json({ message: "Course not found or unauthorized" });
         }
+        redisClient.del(`courses:${adminId}`);
+
 
         res.json({ message: "Course deleted successfully" });
     } catch (error) {
