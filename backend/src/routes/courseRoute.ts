@@ -5,6 +5,7 @@ import { Connection, ParsedInstruction, PartiallyDecodedInstruction, PublicKey }
 import { RECEIVER_WALLET_ADDRESS } from "../config";
 import dotenv from "dotenv";
 import redisClient from "../redisClient";
+import mongoose from "mongoose";
 dotenv.config();
 
 const courseRouter = Router();
@@ -103,6 +104,34 @@ courseRouter.get("/preview", async (req: Request, res: Response) => {
         console.error("Error fetching courses:", error);
         res.status(500).json({ message: "Internal server error" });
     }
+});
+
+courseRouter.get('/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid course ID" });
+  }
+
+  try {
+    const cachedCourse = await redisClient.get(id);
+    if (cachedCourse) {
+      console.log("Returning from cached data");
+      return res.json(JSON.parse(cachedCourse));
+    }
+
+    const course = await Courses.findById(id);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    await redisClient.setEx(id, 3600, JSON.stringify(course)); 
+
+    res.json(course);
+  } catch (error) {
+    console.error("Error fetching course:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 export default courseRouter;
