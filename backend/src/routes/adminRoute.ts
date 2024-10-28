@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { Admin, Purchases, Courses } from "../db";
 import { adminSchema, courseSchema } from "../validator";
 import jwt from "jsonwebtoken";
@@ -128,7 +128,6 @@ adminRouter.get("/courses/bulk",adminMiddleware , async (req: Request, res: Resp
     const adminId = req.adminId;
     const cachedCourses = await redisClient.get(`courses:${adminId}`);
     if (cachedCourses) {
-        console.log("Returning the courses from the cached data");
         return res.json(JSON.parse(cachedCourses));
     }
     try {
@@ -157,7 +156,6 @@ adminRouter.delete('/course/:id', adminMiddleware, async (req: Request, res: Res
 
         res.json({ message: "Course deleted successfully" });
     } catch (error) {
-        console.error("Error deleting course:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });

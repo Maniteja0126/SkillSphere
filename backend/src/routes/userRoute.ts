@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { User , Purchases , Courses } from "../db";
 import { userSchema  } from "../validator";
 import jwt from 'jsonwebtoken';
@@ -40,7 +40,6 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
 
         res.status(201).json({ message: "User created successfully" });
     } catch (error) {
-        console.error("Error during user signup:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -89,7 +88,6 @@ userRouter.get('/purchases', userMiddleware, async (req: Request, res: Response)
 
         const cachedPurchases = await redisClient.get(`purchases:${userId}`);
         if(cachedPurchases){
-            console.log('Returning from the cashed data');
             return res.json(JSON.parse(cachedPurchases))
         }
         const purchases = await Purchases.find({ userId }).lean();
@@ -104,7 +102,6 @@ userRouter.get('/purchases', userMiddleware, async (req: Request, res: Response)
         res.json(responseData);
         
     } catch (err) {
-        console.error("Error fetching purchases:", err);
         res.status(500).json({ message: "Internal server error" });
     }
 });

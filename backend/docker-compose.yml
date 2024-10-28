@@ -1,19 +1,37 @@
-version: '3.8'  
+version: '3.8'
 
 services:
+  app:
+    build: .
+    container_name: SkillSphere
+    ports:
+      - "3000:3000"  
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      MONGO_URL: mongodb://mongo-db:27017/course 
+      REDIS_URL: redis://redis-server:6379  
+      PORT: 3000
+      NODE_ENV: production
+    command: ["node", "dist/index.js"]  
+    restart: unless-stopped 
+
   mongo:
-    image: mongo:latest  
+    image: mongo:latest
     container_name: mongo-db
     ports:
-      - "27017:27017"  
+      - "27017:27017"
     volumes:
-      - mongo_data:/data/db  
+      - mongo_data:/data/db
+    restart: unless-stopped  
 
   redis:
-    image: redis:latest  
+    image: redis:latest
     container_name: redis-server
     ports:
-      - "6379:6379"  
+      - "6379:6379"
+    restart: unless-stopped 
 
 volumes:
-  mongo_data: 
+  mongo_data:

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { userMiddleware } from "../middleware/user";
-import { User, Purchases, Courses } from "../db";
+import { Purchases, Courses } from "../db";
 import { Connection, ParsedInstruction, PartiallyDecodedInstruction, PublicKey } from "@solana/web3.js";
 import { RECEIVER_WALLET_ADDRESS } from "../config";
 import dotenv from "dotenv";
@@ -57,7 +57,6 @@ courseRouter.post('/purchase', userMiddleware, async (req: Request, res: Respons
   
   
       const transferInstruction = transaction.transaction.message.instructions.find((instr) => {
-        console.log("Checking Instruction:", JSON.stringify(instr));
         return (
           isParsedInstruction(instr) &&
           instr.programId.toString() === "11111111111111111111111111111111" &&
@@ -67,7 +66,6 @@ courseRouter.post('/purchase', userMiddleware, async (req: Request, res: Respons
       });
   
       if (!transferInstruction) {
-        console.log("No valid transfer instruction found");
         return res.status(400).json({ message: "Invalid transaction: No valid transfer to receiver wallet." });
       }
 
@@ -78,12 +76,10 @@ courseRouter.post('/purchase', userMiddleware, async (req: Request, res: Respons
         signature : transactionSignature,
       });
   
-      console.log(`Course ${courseId} purchased by user ${userId} with transaction ${transactionSignature}`);
   
       return res.json({ message: "Course purchased successfully" });
   
     } catch (error) {
-      console.error("Error processing purchase:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -92,7 +88,6 @@ courseRouter.post('/purchase', userMiddleware, async (req: Request, res: Respons
 courseRouter.get("/preview", async (req: Request, res: Response) => {
     const cachedCourses = await redisClient.get('allCourses');
     if(cachedCourses){
-        console.log("Returning from the cashed data");
         return res.json(JSON.parse(cachedCourses));
     }
     try {
@@ -101,7 +96,6 @@ courseRouter.get("/preview", async (req: Request, res: Response) => {
 
         res.json({ data: courses });
     } catch (error) {
-        console.error("Error fetching courses:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -116,7 +110,6 @@ courseRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const cachedCourse = await redisClient.get(id);
     if (cachedCourse) {
-      console.log("Returning from cached data");
       return res.json(JSON.parse(cachedCourse));
     }
 
@@ -129,7 +122,6 @@ courseRouter.get('/:id', async (req: Request, res: Response) => {
 
     res.json(course);
   } catch (error) {
-    console.error("Error fetching course:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });

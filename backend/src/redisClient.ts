@@ -12,7 +12,6 @@ redisClient.on("error", (err) => console.error("Redis Client Error", err));
 (async () => {
   try {
     await redisClient.connect();
-    console.log("Redis connected");
   } catch (error) {
     console.error("Failed to connect to Redis", error);
   }
@@ -20,7 +19,6 @@ redisClient.on("error", (err) => console.error("Redis Client Error", err));
 
 process.on("exit", async () => {
   await redisClient.quit();
-  console.log("Redis client disconnected");
 });
 
 export default redisClient;
