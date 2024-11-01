@@ -77,7 +77,15 @@ courseRouter.post('/purchase', userMiddleware, async (req: Request, res: Respons
       });
   
   
-      return res.json({ message: "Course purchased successfully" });
+      const updatedPurchases = await Purchases.find({ userId }).lean();
+        const purchasedCourseIds = updatedPurchases.map(purchase => purchase.courseId.toString());
+        const coursesData = await Courses.find({ _id: { $in: purchasedCourseIds } }).lean();
+        const responseData = { purchases: updatedPurchases, coursesData };
+
+        await redisClient.setEx(`purchases:${userId}`, 3600, JSON.stringify(responseData));
+
+        return res.json({ message: "Course purchased successfully", data: responseData });
+
   
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
